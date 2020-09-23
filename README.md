@@ -1,2 +1,2 @@
-# system-validation-project
+# System Validation Project
 Validating a Crew-Carrying Spacecraft
