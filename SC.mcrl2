@@ -1,0 +1,16 @@
+act
+s_readycheck, r_readycheck, c_readycheck: Nat # Bool;
+readycheck: Nat # Nat;
+s_readyfix, r_readyfix, c_readyfix: Nat;
+readyfix: Nat;
+s_SC_check, r_SC_check, c_SC_check: Nat # Bool;
+parameter_check: Nat;
+
+proc
+SC = sum b: Bool.(s_readycheck(0,b).sum m: Nat.(m<=2) -> (readycheck(0,m).b -> r_readycheck(0,true).SC <> r_readycheck(0,false).SC_fix)
++ s_SC_check(0,b).sum m: Nat.(m<=2) -> (parameter_check(m).b -> r_SC_check(m,true) <> r_SC_check(m,false)).SC);
+		
+SC_fix = s_readyfix(0).sum m: Nat.(m<=2) -> (readyfix(m).sum b: Bool.(b -> r_readycheck(0,true) <> r_readycheck(0,false)).SC);
+
+init
+SC;
