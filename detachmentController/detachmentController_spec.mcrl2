@@ -1,0 +1,25 @@
+act
+	s_ready_check, r_ready_check, c_ready_check: Nat # Bool;
+	s_ready_fix, r_ready_fix, c_ready_fix: Nat # Bool;
+	s_detachment, r_detachment, c_detachment: Nat # Bool;
+	ready_check: Nat # Nat;
+	detach_module: Nat;
+	ready_fix: Nat;
+
+proc
+	DC = sum n: Nat . (n >= 0 && n < 4) -> sum b: Bool . b -> (
+		r_ready_check(n, b) . ReadyCheck(n, b) +
+		r_ready_fix(n, b) . ReadyFix(n, b) +
+		r_detachment(n, b) . Detachment(n, b)
+	);
+
+	ReadyCheck(n: Nat, b: Bool);
+	ReadyFix(n: Nat, b: Bool);
+	Detachment(n: Nat, b: Bool);
+
+init
+	allow({c_ready_check, c_ready_fix, c_detachment, ready_check, detach_module, ready_fix},
+	comm({s_ready_check | r_ready_check -> c_ready_check,
+			s_ready_fix | r_ready_fix -> c_ready_fix,
+			s_detachment | r_detachment -> c_detachment},
+	DC));
