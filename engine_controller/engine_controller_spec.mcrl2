@@ -12,13 +12,13 @@ act
 	checkfuel: Nat;
 
 proc
-	EC = EC_readycheck + EC_checkoff + EC_checkfuel + EC_turnon;
+	EC 								= EC_readycheck + sum module: Nat.(module <= 1) -> (EC_checkoff(module) + EC_checkfuel(module) + EC_turnon(module));
 
-	EC_checkoff = sum b: Bool . (s_checkoff(3,b) . sum module: Nat . (module <= 1) -> (checkoff(module) . b -> r_checkoff(3,true).EC <> r_checkoff(3,false).EC));
-	EC_checkfuel = sum b: Bool . (s_checkfuel(3,b) . sum module: Nat . (module <= 1) -> (checkfuel(module) . b -> r_checkfuel(3,true).EC <> r_checkfuel(3,false).EC));
-	EC_turnon = sum b: Bool . (s_turnon(3,b) . sum module: Nat . (module <= 1) -> (turnon(module,b) . b -> r_turnon(module,true).EC <> r_turnon(module,false).EC));
-	EC_readycheck = sum b: Bool . (s_readycheck(3,b) . sum module: Nat . (module <= 1) -> (readycheck(3,module) . b -> r_readycheck(3, true).EC <> r_readycheck(3,false).EC_readyfix));
-	EC_readyfix = s_readyfix(3) . sum module: Nat . (module <= 1) -> (readyfix(module) . sum b: Bool . (b -> r_readycheck(3,true) <> r_readycheck(3, false)).EC);
+	EC_checkoff(module: Nat) 		= sum b: Bool . s_checkoff(module,b) . checkoff(module) . (b -> r_checkoff(module,true) <> r_checkoff(module,false)) . EC;
+	EC_checkfuel(module: Nat) 		= sum b: Bool . s_checkfuel(module,b) . checkfuel(module) . (b -> r_checkfuel(module,true).EC <> r_checkfuel(module,false)) . EC;
+	EC_turnon(module: Nat) 			= sum b: Bool . s_turnon(module,b) . turnon(module,b) . (b -> r_turnon(module,true).EC <> r_turnon(module,false)) . EC;
+	EC_readycheck 					= sum b: Bool . s_readycheck(3,b) . sum module: Nat . (module <= 1) -> readycheck(3,module) . b -> r_readycheck(3, true) . EC <> r_readycheck(3,false) . s_readyfix(3) . EC_readyfix(module);
+	EC_readyfix(module: Nat) 		= readyfix(module) . sum b: Bool . (b -> r_readycheck(3,true) <> r_readycheck(3, false)) . EC;
 
 init
 EC;
