@@ -13,11 +13,11 @@ act
 proc
 	EC = sum n: Nat . (n >= 0 && n <= 5) -> sum b: Bool . b -> (r_turn_on(n,b) . TurnOn(n,b) + r_check_off(n,b) . CheckOff(n,b) + r_fuel_check(n,b) . FuelCheck(n,b) + r_ready_fix(n,b) . ReadyFix(n,b) + r_ready_check(n,b) . ReadyCheck(n,b));
 	
-	TurnOn(n: Nat, b: Bool) 		= turn_on(n,b) . s_turn_on(n,b) . CC;
-	CheckOff(n: Nat, b: Bool) 		= check_off(n,b) . s_check_off(n,b) . CC;
-	FuelCheck(n: Nat, b: Bool) 		= check_fuel(n,b) . s_fuel_check(n,b) . CC;
-	ReadyFix(n: Nat, b: Bool) 		= ready_fix(n,b) . s_ready_fix(n,b) . CC;
-	ReadyCheck(n: Nat, b: Bool) 	= check_ready(n,b) . s_ready_check(n,b) . CC;
+	TurnOn(n: Nat, b: Bool) 		= turn_on(n,b) . s_turn_on(n,b) . EC;
+	CheckOff(n: Nat, b: Bool) 		= check_off(n,b) . s_check_off(n,b) . EC;
+	FuelCheck(n: Nat, b: Bool) 		= check_fuel(n,b) . s_fuel_check(n,b) . EC;
+	ReadyFix(n: Nat, b: Bool) 		= ready_fix(n,b) . s_ready_fix(n,b) . EC;
+	ReadyCheck(n: Nat, b: Bool) 	= check_ready(n,b) . s_ready_check(n,b) . EC;
 
 	CC = sum n: Nat . (n >= 0 && n <= 5) -> sum b: Bool . b -> (s_turn_on(n,b) + s_check_off(n,b) + s_fuel_check(n,b) + s_ready_fix(n,b) + s_ready_check(n,b)) . EC;
 
