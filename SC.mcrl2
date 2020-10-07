@@ -7,10 +7,12 @@ s_SC_check, r_SC_check, c_SC_check: Nat # Bool;
 parameter_check: Nat;
 
 proc
-SC = sum b: Bool.(s_readycheck(0,b).sum m: Nat.(m<=2) -> (readycheck(0,m).b -> r_readycheck(0,true).SC <> r_readycheck(0,false).SC_fix)
-+ s_SC_check(0,b).sum m: Nat.(m<=2) -> (parameter_check(m).b -> r_SC_check(m,true) <> r_SC_check(m,false)).SC);
-		
-SC_fix = s_readyfix(0).sum m: Nat.(m<=2) -> (readyfix(m).sum b: Bool.(b -> r_readycheck(0,true) <> r_readycheck(0,false)).SC);
+SC = SC_readycheck + sum para: Nat . (para < 3) -> SC_monitor(para);
 
+SC_readycheck = sum b: Bool . s_readycheck(0,b) . sum para: Nat . (para < 3) -> readycheck(0,para) . b -> r_readycheck(0, true) . SC <> r_readycheck(0,false) . s_readyfix(0) . SC_readyfix(para);
+SC_readyfix(para: Nat) = readyfix(para) . sum b: Bool . (b -> r_readycheck(0,true) <> r_readycheck(0,false)) . SC;
+
+SC_monitor(para: Nat) = sum b: Bool . s_SC_check(para,b) . parameter_check(para) . (b -> r_SC_check(para,true) <> r_SC_check(para,false)) . SC;
+		
 init
 SC;
