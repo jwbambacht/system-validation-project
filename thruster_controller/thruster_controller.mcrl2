@@ -1,0 +1,64 @@
+act 
+    r_valvescheck, s_valvescheck, c_valvescheck: Bool;
+    valvesremapreq;
+    r_directionadjustment, s_directionadjustment, c_directionadjustment: Nat;
+    r_speedup, s_speedup, c_speedup: Nat;
+    r_readycheck, s_readycheck, c_readycheck: Nat # Bool;
+    r_readyfix, s_readyfix, c_readyfix: Nat;
+    
+    readycheck: Nat # Nat;
+    speedup: Nat;
+    directionadjustment: Nat;
+    valvescheck;
+    valvesremap;
+    readyfix: Nat;
+
+proc
+	TC = TC_readycheck + TC_valvesremap + TC_valvescheck + sum module: Nat. (module >= 2 && module <= 4) -> (
+        TC_speedup(module) + TC_directionadjustment(module)
+    );
+
+    TC_valvesremap = valvesremapreq . valvesremap . TC;
+
+    TC_speedup(module: Nat) = s_speedup(module) . r_speedup(module). speedup(module) . TC;
+
+    TC_directionadjustment(module: Nat) = s_directionadjustment(module) . r_directionadjustment(module). directionadjustment(module) . TC;
+
+	TC_valvescheck = sum b: Bool . s_valvescheck(b) . valvescheck . (
+        b -> r_valvescheck(true) 
+          <> r_valvescheck(false)
+    ) . TC;
+
+	TC_readycheck = sum b: Bool . s_readycheck(1,b) . (
+        sum module: Nat . (module >= 2 && module <= 4) -> ( readycheck(1, module) . 
+                b -> r_readycheck(1, true) . TC
+                <> r_readycheck(1, false) . s_readyfix(1) . TC_readyfix(module)
+        )
+    );
+
+	TC_readyfix(module: Nat) = readyfix(module) . sum b: Bool . (
+        b -> r_readycheck(1, true) 
+          <> r_readycheck(1, false)
+    ) . TC;
+
+init
+    allow({c_valvescheck, 
+           valvesremapreq,
+           c_directionadjustment, 
+           c_speedup, 
+           r_readycheck, 
+           readycheck, 
+           speedup,
+           directionadjustment,
+           valvescheck,
+           valvesremap,
+           readyfix},
+           
+        comm({r_valvescheck|s_valvescheck -> c_valvescheck,
+              r_directionadjustment|s_directionadjustment -> c_directionadjustment,
+              r_speedup|s_speedup -> c_speedup,
+              r_readycheck|s_readycheck -> c_readycheck},
+              
+            TC      
+        )       
+    );
