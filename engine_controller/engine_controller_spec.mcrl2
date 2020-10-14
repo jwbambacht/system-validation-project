@@ -14,8 +14,8 @@ proc
 
 	EC_checkfuel(module: Nat) 		= sum b: Bool . r_checkfuel(module,b) . checkfuel(module) . (b -> s_checkfuel(module,true).EC <> s_checkfuel(module,false)) . EC;
 	EC_power(module: Nat) 			= sum b: Bool . r_power(module,b) . power(module,b) . (b -> r_power(module,true).EC <> r_power(module,false)) . EC;
-	EC_requestcheck 				= sum b: Bool . r_requestcheck(3,b) . sum module: Nat . (module <= 1) -> check(3,module) . b -> s_requestcheck(3, true) . EC <> s_requestcheck(3,false) . s_requestfix(3) . EC_readyfix(module);
-	EC_readyfix(module: Nat) 		= fix(module) . sum b: Bool . (b -> r_requestcheck(3,true) <> r_requestcheck(3, false)) . EC;
+	EC_requestcheck 				= sum b: Bool . r_requestcheck(3,b) . sum module: Nat . (module <= 1) -> check(3,module) . b -> s_requestcheck(3, true) . EC <> s_requestcheck(3,false) . r_requestfix(3) . EC_fix(module);
+	EC_fix(module: Nat) 			= fix(module) . sum b: Bool . (b -> r_requestcheck(3,true) <> r_requestcheck(3, false)) . EC;
 
 init
 EC;
