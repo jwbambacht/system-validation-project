@@ -14,8 +14,8 @@ act
 proc
 	EC 								= EC_requestcheck + sum module: Nat.(module <= 1) -> (EC_requestfix(module) + EC_checkfuel(module) + EC_power(module));
 
-	EC_checkfuel(module: Nat) 		= sum b: Bool . r_requestcheckfuel(module) . checkfuel(module) . (b -> s_responsecheckfuel(module,true).EC <> s_responsecheckfuel(module,false)) . EC;
-	EC_power(module: Nat) 			= sum b: Bool . r_power(module,b) . power(module,b) . (b -> s_power(module,true).EC <> s_power(module,false).EC) . EC;
+	EC_checkfuel(module: Nat) 		= sum b: Bool . r_requestcheckfuel(module) . checkfuel(module) . s_responsecheckfuel(module,b) . EC;
+	EC_power(module: Nat) 			= sum b: Bool . r_power(module,b) . power(module,b) . s_power(module,b). EC;
 	EC_requestcheck 				= r_requestcheck(3) . ( 
 										sum m0: Bool . ( 
 											check(3,0) .
