@@ -31,10 +31,13 @@ proc
     ) . TC;
 
     TC_check = r_requestcheck(1) . (
-        sum m1: Bool . (
-            m1 -> sum m2: Bool . (
-                m2 -> sum m3: Bool . (
-                    m3 -> s_responsecheck(1, true)
+        sum m2: Bool . (
+            check(1, 2) .
+            m2 -> sum m3: Bool . (
+                check(1, 3) .
+                m3 -> sum m4: Bool . (
+                    check(1, 4) . 
+                    m4 -> s_responsecheck(1, true)
                     <> s_responsecheck(1, false)
                 ) <> s_responsecheck(1, false)
             ) <> s_responsecheck(1, false)
