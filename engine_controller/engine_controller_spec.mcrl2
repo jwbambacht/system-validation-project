@@ -1,8 +1,10 @@
 act
 	r_power, s_power, c_power: Nat # Bool;
-	r_checkfuel, s_checkfuel, c_checkfuel: Nat # Bool;
+	r_requestcheckfuel, s_requestcheckfuel, c_requestcheckfuel: Nat;
+	r_responsecheckfuel, s_responsecheckfuel, c_responsecheckfuel: Nat # Bool;
 	r_requestfix, s_requestfix, c_requestfix: Nat;
-	r_requestcheck, s_requestcheck, c_requestcheck: Nat # Bool;
+	r_requestcheck, s_requestcheck, c_requestcheck: Nat;
+	r_responsecheck, s_responsecheck, c_responsecheck: Nat # Bool;
 
 	check: Nat # Nat;
 	fix: Nat;
@@ -10,18 +12,29 @@ act
 	checkfuel: Nat;
 
 proc
-	EC 								= EC_requestcheck + sum module: Nat.(module <= 1) -> (EC_checkfuel(module) + EC_power(module));
+	EC 								= EC_requestcheck + sum module: Nat.(module <= 1) -> (EC_requestfix(module) + EC_checkfuel(module) + EC_power(module));
 
-	EC_checkfuel(module: Nat) 		= sum b: Bool . r_checkfuel(module,b) . checkfuel(module) . (b -> s_checkfuel(module,true).EC <> s_checkfuel(module,false)) . EC;
-	EC_power(module: Nat) 			= sum b: Bool . r_power(module,b) . power(module,b) . (b -> r_power(module,true).EC <> r_power(module,false)) . EC;
-	EC_requestcheck 				= sum b: Bool . r_requestcheck(3,b) . sum module: Nat . (module <= 1) -> check(3,module) . b -> s_requestcheck(3, true) . EC <> s_requestcheck(3,false) . r_requestfix(3) . EC_fix(module);
-	EC_fix(module: Nat) 			= fix(module) . sum b: Bool . (b -> r_requestcheck(3,true) <> r_requestcheck(3, false)) . EC;
+	EC_checkfuel(module: Nat) 		= sum b: Bool . r_requestcheckfuel(module) . checkfuel(module) . (b -> s_responsecheckfuel(module,true).EC <> s_responsecheckfuel(module,false)) . EC;
+	EC_power(module: Nat) 			= sum b: Bool . r_power(module,b) . power(module,b) . (b -> s_power(module,true).EC <> s_power(module,false).EC) . EC;
+	EC_requestcheck 				= r_requestcheck(3) . ( 
+										sum m0: Bool . ( 
+											check(3,0) .
+											m0 -> sum m1: Bool . ( 
+												check(3,1) . 
+												m1 -> s_responsecheck(3, true) <> 
+												s_responsecheck(3, false)
+											) <> s_responsecheck(3, false)
+										)
+									) . EC;
+    EC_requestfix(module: Nat) 		= r_requestfix(module) . fix(module) . sum b: Bool . (s_responsecheck(3, b)) . EC;
 
 init
 EC;
-	%allow({c_power, c_checkfuel, c_requestfix, c_requestcheck, check, fix, power, checkfuel},
+	%allow({c_power, c_requestcheckfuel, c_responsecheckfuel, c_requestfix, c_requestcheck, c_responsecheck, check, fix, power, checkfuel},
 	%comm({	r_power|s_power -> c_power,
-	%		r_checkfuel|s_checkfuel -> c_checkfuel,
+	%		r_requestcheckfuel|s_requestcheckfuel -> c_requestcheckfuel,
+	%		r_responsecheckfuel|s_responsecheckfuel -> c_responsecheckfuel,
 	%		r_requestfix|s_requestfix -> c_requestfix,
-	%		r_requestcheck|s_requestcheck -> c_requestcheck},
+	%		r_requestcheck|s_requestcheck -> c_requestcheck,
+	%		r_responsecheck|s_responsecheck -> c_responsecheck},
 	%EC));
