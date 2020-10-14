@@ -1,9 +1,11 @@
 act 
-    r_requestvalvescheck, s_requestvalvescheck, c_requestvalvescheck: Bool;
+    r_requestvalvescheck, s_requestvalvescheck, c_requestvalvescheck;
+    r_responsevalvescheck, s_responsevalvescheck, c_responsevalvescheck: Bool;
     r_requestvalvesremap, s_requestvalvesremap, c_requestvalvesremap;
     r_adjustdirection, s_adjustdirection, c_adjustdirection: Nat;
     r_speedup, s_speedup, c_speedup: Nat;
-    r_requestcheck, s_requestcheck, c_requestcheck: Nat # Bool;
+    r_requestcheck, s_requestcheck, c_requestcheck: Nat;
+    r_responsecheck, s_responsecheck, c_responsecheck: Nat # Bool;
     r_requestfix, s_requestfix, c_requestfix: Nat;
     
     check: Nat # Nat;
@@ -15,7 +17,7 @@ act
 
 proc
     TC = TC_check + TC_valvesremap + TC_valvescheck + sum module: Nat. (module >= 2 && module <= 4) -> (
-        TC_speedup(module) + TC_adjustdirection(module)
+        TC_speedup(module) + TC_adjustdirection(module) + TC_fix(module)
     );
 
     TC_valvesremap = r_requestvalvesremap . valvesremap . TC;
@@ -24,29 +26,30 @@ proc
 
     TC_adjustdirection(module: Nat) = r_adjustdirection(module). adjustdirection(module) . TC;
 
-    TC_valvescheck = sum b: Bool . r_requestvalvescheck(b) . valvescheck . (
-        b -> s_requestvalvescheck(true) 
-          <> s_requestvalvescheck(false)
+    TC_valvescheck = r_requestvalvescheck . valvescheck . sum b: Bool . (
+        s_responsevalvescheck(true) + s_responsevalvescheck(false)
     ) . TC;
 
-    TC_check = sum b: Bool . r_requestcheck(1,b) . (
+    TC_check = r_requestcheck(1) . (
         sum module: Nat . (module >= 2 && module <= 4) -> ( check(1, module) . 
-                b -> s_requestcheck(1, true) . TC
-                <> s_requestcheck(1, false) . s_requestfix(1) . TC_fix(module)
+            sum b: Bool . (
+                s_responsecheck(1, b)
+            )
         )
-    );
+    ) . TC;
 
     TC_fix(module: Nat) = r_requestfix(module) . fix(module) . sum b: Bool . (
-        b -> s_requestcheck(1, true) 
-          <> s_requestcheck(1, false)
+        s_responsecheck(1, b) 
     ) . TC;
 
 init
     allow({c_requestvalvescheck, 
+           c_responsevalvescheck,
            c_requestvalvesremap,
            c_adjustdirection, 
            c_speedup, 
            c_requestcheck, 
+           c_responsecheck,
            check, 
            speedup,
            adjustdirection,
@@ -55,10 +58,12 @@ init
            fix},
            
         comm({r_requestvalvescheck|s_requestvalvescheck -> c_requestvalvescheck,
+              r_responsevalvescheck|s_responsevalvescheck -> c_responsevalvescheck,
               r_requestvalvesremap|s_requestvalvesremap -> c_requestvalvesremap,
               r_adjustdirection|s_adjustdirection -> c_adjustdirection,
               r_speedup|s_speedup -> c_speedup,
               r_requestcheck|s_requestcheck -> c_requestcheck,
+              r_responsecheck|s_responsecheck -> c_responsecheck,
               r_requestfix|s_requestfix -> c_requestfix},
               
             TC      
