@@ -27,7 +27,7 @@ proc
 			) <> s_responsecheck(2, false)
         )
     ) . DC;
-	DC_fix(module: Nat)			= r_requestfix(module) . fix(module) . sum b: Bool . (b -> s_responsecheck(2, true) <> s_responsecheck(2, false)) . DC;
+	DC_fix(module: Nat)			= r_requestfix(module) . fix(module) . sum b: Bool . s_responsecheck(2, b) . DC;
 	DC_detachment(module: Nat)	= r_detachment(module) . detachmodule(module) . DC;
 
 init
