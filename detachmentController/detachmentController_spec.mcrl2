@@ -1,20 +1,20 @@
 act
-	s_readycheck, r_readycheck, c_readycheck: Nat # Bool;
-	s_readyfix, r_readyfix, c_readyfix: Nat;
+	s_requestcheck, r_requestcheck, c_requestcheck: Nat # Bool;
+	s_requestfix, r_requestfix, c_requestfix: Nat;
 	s_detachment, r_detachment, c_detachment: Nat # Bool;
 	
 	readycheck: Nat # Nat;
 	detachmodule: Nat;
-	readyfix: Nat;
+	fix: Nat;
 
 proc
 	DC = DC_readycheck . sum n: Nat . (n < 4) -> (
-		DC_readyfix(n) +
+		DC_fix(n) +
 		DC_detachment(n)
 	);
 
-	DC_readycheck				= sum b: Bool . r_readycheck(2, b) . sum module: Nat . (module < 4) -> readycheck(2, module) . b -> s_readycheck(2, true) . DC <> s_readycheck(2, false) . r_readyfix(2) . DC_readyfix(module);
-	DC_readyfix(module: Nat)	= readyfix(module) . sum b: Bool . (b -> s_readycheck(2, true) <> s_readycheck(2, false)) . DC;
+	DC_readycheck				= sum b: Bool . r_requestcheck(2, b) . sum module: Nat . (module < 4) -> readycheck(2, module) . b -> s_requestcheck(2, true) . DC <> s_requestcheck(2, false) . r_requestfix(2) . DC_fix(module);
+	DC_fix(module: Nat)	= fix(module) . sum b: Bool . (b -> s_requestcheck(2, true) <> s_requestcheck(2, false)) . DC;
 	DC_detachment(module: Nat)	= sum b: Bool . r_detachment(module, b) . (b -> detachmodule(module) . s_detachment(module, true) <> s_detachment(module, false)) . DC;
 
 init
