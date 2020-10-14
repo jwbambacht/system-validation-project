@@ -1,0 +1,39 @@
+act
+	s_requestcheck, r_requestcheck, c_requestcheck: Nat;
+	s_responsecheck, r_responsecheck, c_responsecheck: Nat # Bool;
+	s_requestfix, r_requestfix, c_requestfix: Nat;
+	s_detachment, r_detachment, c_detachment: Nat;
+	
+	check: Nat # Nat;
+	detachmodule: Nat;
+	fix: Nat;
+
+proc
+	DC =    DC_fix(2) + 
+			DC_readycheck +
+			sum n: Nat . (n < 4) -> (
+				DC_detachment(n)
+			);
+
+	DC_readycheck = r_requestcheck(2) . (
+        check(2, 0) . sum module0check: Bool . (
+            module0check -> check(2, 1) . sum module1check: Bool . (
+                module1check -> check(2, 2) . sum module2check: Bool . (
+                    module2check -> check(2, 3) . sum module3check: Bool . (
+                    	module3check -> s_responsecheck(2, true)
+                    	<> s_responsecheck(2, false)
+                	) <> s_responsecheck(2, false)
+            	) <> s_responsecheck(2, false)
+			) <> s_responsecheck(2, false)
+        )
+    ) . DC;
+	DC_fix(module: Nat)			= r_requestfix(module) . fix(module) . sum b: Bool . s_responsecheck(2, b) . DC;
+	DC_detachment(module: Nat)	= r_detachment(module) . detachmodule(module) . DC;
+
+init
+%	allow({c_readycheck, c_readyfix, c_detachment, readycheck, detachmodule, readyfix},
+%	comm({s_readycheck | r_readycheck -> c_readycheck,
+%			s_readyfix | r_readyfix -> c_readyfix,
+%			s_detachment | r_detachment -> c_detachment},
+%	DC));
+	DC;
