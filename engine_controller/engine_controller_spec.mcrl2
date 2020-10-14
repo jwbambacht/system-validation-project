@@ -1,31 +1,27 @@
 act
-	r_turnon, s_turnon, c_turnon: Nat # Bool;
-	r_checkoff, s_checkoff, c_checkoff: Nat # Bool;
+	r_power, s_power, c_power: Nat # Bool;
 	r_checkfuel, s_checkfuel, c_checkfuel: Nat # Bool;
-	r_readyfix, s_readyfix, c_readyfix: Nat;
-	r_readycheck, s_readycheck, c_readycheck: Nat # Bool;
+	r_requestfix, s_requestfix, c_requestfix: Nat;
+	r_requestcheck, s_requestcheck, c_requestcheck: Nat # Bool;
 
-	readycheck: Nat # Nat;
-	readyfix: Nat;
-	turnon: Nat # Bool;
-	checkoff: Nat;
+	check: Nat # Nat;
+	fix: Nat;
+	power: Nat # Bool;
 	checkfuel: Nat;
 
 proc
-	EC 								= EC_readycheck + sum module: Nat.(module <= 1) -> (EC_checkoff(module) + EC_checkfuel(module) + EC_turnon(module));
+	EC 								= EC_requestcheck + sum module: Nat.(module <= 1) -> (EC_checkfuel(module) + EC_power(module));
 
-	EC_checkoff(module: Nat) 		= sum b: Bool . s_checkoff(module,b) . checkoff(module) . (b -> r_checkoff(module,true) <> r_checkoff(module,false)) . EC;
-	EC_checkfuel(module: Nat) 		= sum b: Bool . s_checkfuel(module,b) . checkfuel(module) . (b -> r_checkfuel(module,true).EC <> r_checkfuel(module,false)) . EC;
-	EC_turnon(module: Nat) 			= sum b: Bool . s_turnon(module,b) . turnon(module,b) . (b -> r_turnon(module,true).EC <> r_turnon(module,false)) . EC;
-	EC_readycheck 					= sum b: Bool . s_readycheck(3,b) . sum module: Nat . (module <= 1) -> readycheck(3,module) . b -> r_readycheck(3, true) . EC <> r_readycheck(3,false) . s_readyfix(3) . EC_readyfix(module);
-	EC_readyfix(module: Nat) 		= readyfix(module) . sum b: Bool . (b -> r_readycheck(3,true) <> r_readycheck(3, false)) . EC;
+	EC_checkfuel(module: Nat) 		= sum b: Bool . r_checkfuel(module,b) . checkfuel(module) . (b -> s_checkfuel(module,true).EC <> s_checkfuel(module,false)) . EC;
+	EC_power(module: Nat) 			= sum b: Bool . r_power(module,b) . power(module,b) . (b -> r_power(module,true).EC <> r_power(module,false)) . EC;
+	EC_requestcheck 				= sum b: Bool . r_requestcheck(3,b) . sum module: Nat . (module <= 1) -> check(3,module) . b -> s_requestcheck(3, true) . EC <> s_requestcheck(3,false) . s_requestfix(3) . EC_readyfix(module);
+	EC_readyfix(module: Nat) 		= fix(module) . sum b: Bool . (b -> r_requestcheck(3,true) <> r_requestcheck(3, false)) . EC;
 
 init
 EC;
-	%allow({c_turnon, c_checkoff, c_checkfuel, c_readyfix, c_readycheck, readycheck, readyfix, turnon, checkoff, checkfuel},
-	%comm({	r_turnon|s_turnon -> c_turnon,
-	%		r_checkoff|s_checkoff -> c_checkoff,
+	%allow({c_power, c_checkfuel, c_requestfix, c_requestcheck, check, fix, power, checkfuel},
+	%comm({	r_power|s_power -> c_power,
 	%		r_checkfuel|s_checkfuel -> c_checkfuel,
-	%		r_readyfix|s_readyfix -> c_readyfix,
-	%		r_readycheck|s_readycheck -> c_readycheck},
+	%		r_requestfix|s_requestfix -> c_requestfix,
+	%		r_requestcheck|s_requestcheck -> c_requestcheck},
 	%EC));
