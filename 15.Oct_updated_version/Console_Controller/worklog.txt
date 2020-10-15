@@ -1,0 +1,13 @@
+This is only the draft version, and 7 things need to be announced.
+
+1. There will be not {r_readyfix, s_readyfix, c_readyfix: Nat;} anymore, instead, we use {readyfix_req: Nat;}. The reason is that {s_readycheck, r_readycheck, c_readycheck: Nat # Bool;} has the capability to check it.
+2. {s_check_off, r_check_off, c_check_off: Nat # Bool;} and its corresponding internal action(s) will be deleted, because they are redundant when I implement the functions.
+3. For the altitude checking, "true" represents breaching the atmosphere while "false" represents not breaching.
+4. For the fuel checking, "true" represents not depleted while "false" represents depleted.
+5. OM owns an engine (see step 5 and figure 1)
+6. There should have an assumption for step 6 --> predefined interval = the depleting time of fuel, then we can use fuel_check to determine the correct timing for the detachment. 
+7. I believe this version is not the final one, so do not hurry to merge your code with it. 
+
+I saw all the controllers have been finished coding which meant that we had made great progress in so far. (y)
+
+Wish all of you have a nice weekend!

@@ -1,0 +1,69 @@
+act
+% before lift-off:
+s_requestcheck, r_requestcheck, c_requestcheck: Nat; % check communication
+s_responsecheck, r_responsecheck, c_responsecheck: Nat # Bool; % response to the requestcheck
+s_requestfix, r_requestfix, c_requestfix: Nat; % fix communication
+liftoffready; % ready-state loop
+liftoff; % to start mission communicative signal from outside
+% corresponding internal actions:
+check: Nat # Nat;
+fix: Nat;
+
+% after lift-off:
+% communication between CC and SC:
+s_requestparacheck, r_requestparacheck, c_requestparacheck: Nat	; % to check 0:speed, 1:direction, and 2:altitude
+s_responseparacheck, r_responseparacheck, c_responseparacheck: Nat # Bool;
+% corresponding internal actions:
+paracheck: Nat;
+
+% communication between CC and EC:
+s_power, r_power, c_power: Nat # Bool; % to turn on/off the modules
+s_requestcheckfuel, r_requestcheckfuel, c_requestcheckfuel: Nat; % to check fuel status
+s_responsecheckfuel, r_responsecheckfuel, c_responsecheckfuel: Nat # Bool;
+s_responsepower, r_responsepower, c_responsepower;
+% corresponding internal actions:
+power: Nat # Bool;
+checkfuel: Nat;
+
+
+% communication between CC and DC:
+s_detachment, r_detachment, c_detachment: Nat; % to detach the modules
+s_responsedetachment, r_responsedetachment, c_responsedetachment;
+% corresponding internal actions:
+detachmodule: Nat;
+
+% communication between CC and TC:
+s_speedup, r_speedup, c_speedup: Nat; % to accelerate the speed
+s_adjustdirection, r_adjustdirection, c_adjustdirection: Nat; % to adjust the trajectory
+s_requestvalvesremap, r_requestvalvesremap, c_requestvalvesremap; % to remap the valves
+s_requestvalvescheck, r_requestvalvescheck, c_requestvalvescheck; % to check the remapping valves
+s_responsespeedup, r_responsespeedup, c_responsespeedup;
+s_responseadjustdirection, r_responseadjustdirection, c_responseadjustdirection;
+s_responsevalvescheck, r_responsevalvescheck, c_responsevalvescheck: Bool;
+% corresponding internal actions:
+speedup: Nat;
+adjustdirection: Nat;
+valvesremap;
+valvescheck;
+
+% stage-1 mission ends:
+s_ending, r_ending, c_ending;
+
+proc
+%________________________Thruster Controller________________________
+TC = r_requestcheck(1) . TC_check(0) + r_requestfix(1) . TC_fix + TC_valvesremap + TC_valvescheck + sum module: Nat. (module<=4) -> (TC_speedup(module) + TC_adjustdirection(module));
+
+TC_valvesremap = r_requestvalvesremap . valvesremap . TC;
+
+TC_speedup(module: Nat) = r_speedup(module) . speedup(module) . s_responsespeedup . TC;
+
+TC_adjustdirection(module: Nat) = r_adjustdirection(module) . adjustdirection(module) . s_responseadjustdirection . TC;
+
+TC_valvescheck = r_requestvalvescheck . valvescheck . sum b: Bool . s_responsevalvescheck(b) . TC;
+
+TC_check(module: Nat) = (module<=4) -> ((module<=3) -> check(1,module) . TC_check(module+1) <> check(1,module) . sum b: Bool .  s_responsecheck(1,b) . TC);
+
+TC_fix =  sum module: Nat . (module<=4) -> fix(module) . sum b: Bool . s_responsecheck(1,b) . TC;
+
+init
+TC;
