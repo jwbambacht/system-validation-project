@@ -1,0 +1,6 @@
+(<true* . liftoffready> <liftoff> true)
+
+&&
+
+(<true* . !liftoffready> <!liftoff> true)
+
