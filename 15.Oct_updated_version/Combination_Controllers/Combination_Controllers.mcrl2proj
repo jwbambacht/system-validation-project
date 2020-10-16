@@ -1,0 +1,19 @@
+<root>
+ <spec>Combination_Controllers_spec.mcrl2</spec>
+ <properties>
+  <property>property</property>
+  <property>liftoffready_liftoff</property>
+  <property>readycheck_liftoffready</property>
+  <property>parameters_checked</property>
+  <property>bm_detach_nofuel_off</property>
+  <property>lm_detach_nofuel_off</property>
+  <property>bm_nofuel_detach</property>
+  <property>lm_nofuel_detach</property>
+  <property>speed_too_low_speedup</property>
+  <property>detach_success</property>
+  <property>no_remap_valves_no_om_detach</property>
+  <property>valves_remap_req</property>
+  <property>om_detach_after_valves_check_remap</property>
+  <property>om_detach_after_atmosphere</property>
+ </properties>
+</root>

@@ -1,0 +1,5 @@
+(<true* . c_responsecheck(3,true)> <liftoffready> true)
+
+&&
+
+(<true* . c_responsecheck(3,false)> <!liftoffready> true)

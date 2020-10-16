@@ -1,0 +1,5 @@
+(<true* . c_responsecheckfuel(0,false)> < c_power(0,false)> <true* . detachmodule(0)> true)
+
+&&
+
+(<true* . c_responsecheckfuel(0,true)> <true* . !c_power(0,false)> true)

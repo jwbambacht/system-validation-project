@@ -1,0 +1,10 @@
+(<true* . c_responseparacheck(0,false)> <true* . c_speedup(0)> true)
+
+&&
+
+(<true* . c_responseparacheck(1,false)> <true* . c_speedup(1)> true)
+
+&&
+
+(<true* . c_responseparacheck(2,false)> <true* . c_speedup(2)> true)
+
