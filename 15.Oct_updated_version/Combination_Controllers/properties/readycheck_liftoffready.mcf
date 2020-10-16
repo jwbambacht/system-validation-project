@@ -3,7 +3,3 @@
 &&
 
 (<true* . c_responsecheck(3,false)> <!liftoffready> true)
-
-&&
-
-(<true* . c_responsecheck(3,false)> <!liftoffready> true)
