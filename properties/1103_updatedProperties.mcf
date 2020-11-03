@@ -54,10 +54,20 @@ forall n:Nat . val (n <= 2) => (
 &&
 [true* . c_ending] [true] false
 
+&&
 
+%BM detachment should be followed by LM followed by the cover of the CM followed by OM
+<true* . detachmodule(0)> <true* . detachmodule(1)> <true* . detachmodule(2)> true  
+&&
+<true* . detachmodule(2)> <true* . !detachmodule(1)> true
+&&
+<true* . detachmodule(2)> <true* . !detachmodule(0)> true
+&&
+<true* . detachmodule(1)> <true* . !detachmodule(0)> true
 
+&&
 
-
-
-
-
+%If CC requests a check it will eventually be checked by the SC
+forall n:Nat . val (n <= 2) => (
+<true* . c_requestparacheck(n)> <paracheck(n)> true
+)
