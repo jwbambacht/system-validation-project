@@ -1,0 +1,63 @@
+% If a module depletes its fuel, it is possible to be discard after being powered off and it should not be discarded if its power is not turned off. (In this project, detachment only happens on module 0, 1 and 2)
+forall n:Nat . val (n <= 2) => (
+( [true* . c_responsecheckfuel(n, false)] <true* . power(n, false) . true* . detachmodule(n)> true )
+&&
+( [true* . c_responsecheckfuel(n, false)] [!power(n, false)* . detachmodule(n)] false )
+)
+
+&&
+% After CC gives a module detaching request, the corresponding module should detach immediately and successfully.
+forall n:Nat . val (n <= 2) => (
+[true* . c_detachment(n)] <detachmodule(n)> true
+)
+
+&&
+% Liftoff is possible to take place only after liftoffready.
+[!liftoffready* . liftoff] false
+&&
+<true* . liftoffready*> <true* . liftoff> true  
+
+
+&&
+% It is impossible to detach OM if the valves have not been remapped.
+[true* . c_responsevalvescheck(false) . !c_responsevalvescheck(true)* . c_detachment(2)] false
+
+&&
+%After being requested to remap the valves of OM, the valves will be inevitably remapped.
+[true* . c_requestvalvesremap] mu X.([!valvesremap]X && <true> true) 
+
+&&
+%The detachment of OM happens only after breaking the atmosphere.
+[true* . c_responseparacheck(2,true)] <true* . detachmodule(2)> true
+&&
+[true* . c_responseparacheck(2,false) . !c_responseparacheck(2,true)* . detachmodule(2)] false
+
+&&
+%If the speed is not enough, it will inevitably speed up to approach the setting speed.
+[!(power(0,false)&&power(1,false))* . c_responseparacheck(0, false)] <!(power(0,false)&&power(1,false))* . exists n: Nat . val(n <=1) => speedup(n)* . c_responseparacheck(0, true)> true
+&&
+[!power(1,false)* . c_responseparacheck(0, false)] <!power(1,false)* . speedup(1)* . c_responseparacheck(0, true)> true
+&&
+[(power(2,true)&&!power(2,false))* . c_responseparacheck(0, false)] <!power(2,false)* . speedup(2)* . c_responseparacheck(0, true)> true
+
+&&
+%If the trajectory is not correct, it will inevitably adjust it to approach the setting direction.
+[!(power(0,false)&&power(1,false))* . c_responseparacheck(1, false)] <!(power(0,false)&&power(1,false))* . exists n: Nat . val(n <=1) => adjustdirection(n)* . c_responseparacheck(1, true)> true
+&&
+[!power(1,false)* . c_responseparacheck(1, false)] <!power(1,false)* . adjustdirection(1)* . c_responseparacheck(1, true)> true
+&&
+[(power(2,true)&&!power(2,false))* . c_responseparacheck(1, false)] <!power(2,false)* . adjustdirection(2)* . c_responseparacheck(1, true)> true
+
+&&
+%The dead-lock state for the project only occurs after ending signal.
+[!c_ending*] <true> true
+&&
+[true* . c_ending] [true] false
+
+
+
+
+
+
+
+
