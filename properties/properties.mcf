@@ -67,7 +67,7 @@
 &&
 
 % After CC gives a module detaching request, the corresponding module should detach immediately and successfully.
-(forall n:Nat . val (n <= 2) => (
+(forall n:Nat . val (n <= 2 || n == 4) => (
 	[true* . c_detachment(n)] <detachmodule(n)> true
 	)
 )
@@ -80,7 +80,7 @@
 &&
 
 %After being requested to remap the valves of OM, the valves will be inevitably remapped.
-[true* . c_requestvalvesremap] mu X.([!valvesremap]X && <true> true) 
+[true* . c_requestvalvesremap] mu X.([!valvesremap]X && <!detachmodule(2)> true) 
 
 &&
 
