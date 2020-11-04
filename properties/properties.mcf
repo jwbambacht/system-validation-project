@@ -8,22 +8,24 @@
 % Liftoff is the only possible action which takes place after liftoffready, and it cannot occur before liftoffready.
 [!liftoffready* . liftoff] false
 &&
-<true* . liftoffready> <liftoff> true  
+<true* . liftoffready> <liftoff> true 
 
 &&
 
 %It is impossible to lift off, if any controller is in incorrect status before liftoff
-forall n:Nat . val (n<=2) => (
-[true* . r_responsecheck(n,false) . !r_responsecheck(n,true)* . liftoff] false
+(forall n:Nat . val (n<=2) => (
+	[true* . r_responsecheck(n,false) . !r_responsecheck(n,true)* . liftoff] false
+	)
 )
 
 &&
 
 %If any controller needs to be fixed, the corresponding fixation will inevitably be done, and the problem should be fixed finally. 
-forall n:Nat . val (n<=2) => (
-( [true* . r_responsecheck(n,false)] mu X.([!fix(n)]X && <true> true) )
-&&
-( [true* . r_responsecheck(n,false)] <true* . r_responsecheck(n,true)> true )
+(forall n:Nat . val (n<=2) => (
+	( [true* . r_responsecheck(n,false)] mu X.([!fix(n)]X && <true> true) )
+	&&
+	( [true* . r_responsecheck(n,false)] <true* . r_responsecheck(n,true)> true )
+	)
 )
 
 &&
@@ -47,24 +49,27 @@ forall n:Nat . val (n<=2) => (
 &&
 
 % If a module depletes its fuel, it is possible to be discard after being powered off and it should not be discarded if its power is not turned off. (In this project, detachment only happens on module 0, 1 and 2)
-forall n:Nat . val (n <= 2) => (
-( [true* . c_responsecheckfuel(n, false)] <true* . power(n, false) . true* . detachmodule(n)> true )
-&&
-( [true* . c_responsecheckfuel(n, false)] [!power(n, false)* . detachmodule(n)] false )
+(forall n:Nat . val (n <= 2) => (
+	( [true* . c_responsecheckfuel(n, false)] <true* . power(n, false) . true* . detachmodule(n)> true )
+	&&
+	( [true* . c_responsecheckfuel(n, false)] [!power(n, false)* . detachmodule(n)] false )
+	)
 )
 
 &&
 
 %If CC requests a parameter check it will immediately be checked by the SC
-forall n:Nat . val (n <= 2) => (
-<true* . c_requestparacheck(n)> <paracheck(n)> true
+(forall n:Nat . val (n <= 2) => (
+	<true* . c_requestparacheck(n)> <paracheck(n)> true
+	)
 )
 
 &&
 
 % After CC gives a module detaching request, the corresponding module should detach immediately and successfully.
-forall n:Nat . val (n <= 2) => (
-[true* . c_detachment(n)] <detachmodule(n)> true
+(forall n:Nat . val (n <= 2) => (
+	[true* . c_detachment(n)] <detachmodule(n)> true
+	)
 )
 
 &&
