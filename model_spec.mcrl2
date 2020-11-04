@@ -1,102 +1,86 @@
 act
 % before lift-off:
-s_requestcheck, r_requestcheck, c_requestcheck: Nat; % check communication
-s_responsecheck, r_responsecheck, c_responsecheck: Nat # Bool; % response to the requestcheck
-s_requestfix, r_requestfix, c_requestfix: Nat; % fix communication
-liftoffready; % ready-state loop
-liftoff; % to start mission communicative signal from outside
-% corresponding internal actions:
-check: Nat # Nat;
-fix: Nat;
+	s_requestcheck, r_requestcheck, c_requestcheck: Nat; % check communication
+	s_responsecheck, r_responsecheck, c_responsecheck: Nat # Bool; % response to the requestcheck
+	s_requestfix, r_requestfix, c_requestfix: Nat; % fix communication
+	liftoffready; % ready-state loop
+	liftoff; % to start mission communicative signal from outside
+	
+	% corresponding internal actions:
+	check: Nat # Nat;
+	fix: Nat;
 
 % after lift-off:
-% communication between CC and SC:
-s_requestparacheck, r_requestparacheck, c_requestparacheck: Nat	; % to check 0:speed, 1:direction, and 2:altitude
-s_responseparacheck, r_responseparacheck, c_responseparacheck: Nat # Bool;
-% corresponding internal actions:
-paracheck: Nat;
+	% communication between CC and SC:
+	s_requestparacheck, r_requestparacheck, c_requestparacheck: Nat	; % to check 0:speed, 1:direction, and 2:altitude
+	s_responseparacheck, r_responseparacheck, c_responseparacheck: Nat # Bool; % the respond of the requestparacheck
+	
+	% corresponding internal actions:
+	paracheck: Nat;
 
 % communication between CC and EC:
-s_power, r_power, c_power: Nat # Bool; % to turn on/off the modules
-s_requestcheckfuel, r_requestcheckfuel, c_requestcheckfuel: Nat; % to check fuel status
-s_responsecheckfuel, r_responsecheckfuel, c_responsecheckfuel: Nat # Bool;
-s_responsepower, r_responsepower, c_responsepower;
-% corresponding internal actions:
-power: Nat # Bool;
-checkfuel: Nat;
+	s_power, r_power, c_power: Nat # Bool; % to turn on/off the modules
+	s_requestcheckfuel, r_requestcheckfuel, c_requestcheckfuel: Nat; % to check fuel status
+	s_responsecheckfuel, r_responsecheckfuel, c_responsecheckfuel: Nat # Bool;
+	s_responsepower, r_responsepower, c_responsepower;
 
+	% corresponding internal actions:
+	power: Nat # Bool;
+	checkfuel: Nat;
 
 % communication between CC and DC:
-s_detachment, r_detachment, c_detachment: Nat; % to detach the modules
-s_responsedetachment, r_responsedetachment, c_responsedetachment;
-% corresponding internal actions:
-detachmodule: Nat;
+	s_detachment, r_detachment, c_detachment: Nat; % to detach the modules
+	s_responsedetachment, r_responsedetachment, c_responsedetachment;
+
+	% corresponding internal actions:
+	detachmodule: Nat;
 
 % communication between CC and TC:
-s_speedup, r_speedup, c_speedup: Nat; % to accelerate the speed
-s_adjustdirection, r_adjustdirection, c_adjustdirection: Nat; % to adjust the trajectory
-s_requestvalvesremap, r_requestvalvesremap, c_requestvalvesremap; % to remap the valves
-s_requestvalvescheck, r_requestvalvescheck, c_requestvalvescheck; % to check the remapping valves
-s_responsespeedup, r_responsespeedup, c_responsespeedup;
-s_responseadjustdirection, r_responseadjustdirection, c_responseadjustdirection;
-s_responsevalvescheck, r_responsevalvescheck, c_responsevalvescheck: Bool;
-% corresponding internal actions:
-speedup: Nat;
-adjustdirection: Nat;
-valvesremap;
-valvescheck;
+	s_speedup, r_speedup, c_speedup: Nat; % to accelerate the speed
+	s_adjustdirection, r_adjustdirection, c_adjustdirection: Nat; % to adjust the trajectory
+	s_requestvalvesremap, r_requestvalvesremap, c_requestvalvesremap; % to remap the valves
+	s_requestvalvescheck, r_requestvalvescheck, c_requestvalvescheck; % to check the remapping valves
+	s_responsespeedup, r_responsespeedup, c_responsespeedup;
+	s_responseadjustdirection, r_responseadjustdirection, c_responseadjustdirection;
+	s_responsevalvescheck, r_responsevalvescheck, c_responsevalvescheck: Bool;
+
+	% corresponding internal actions:
+	speedup: Nat;
+	adjustdirection: Nat;
+	valvesremap;
+	valvescheck;
 
 % stage-1 mission ends:
-s_ending, r_ending, c_ending;
+	s_ending, r_ending, c_ending;
 
 proc 
 %________________________Signal Controller________________________
 SC = r_requestcheck(0) . SC_check(0) + r_requestfix(0) . SC_fix + SC_paracheck;
-
-SC_check(para: Nat) = (para<3) -> ((para<2) -> check(0,para) . SC_check(para+1) <> check(0,para) . sum b: Bool .  s_responsecheck(0,b) . SC);
-
+SC_check(con: Nat) = (check(con,0)|check(con,1)|check(con,2)) . sum b: Bool .  s_responsecheck(con,b) . SC;
 SC_fix = sum para: Nat . (para<3) -> fix(para) . sum b: Bool . s_responsecheck(0, b) . SC;
-
 SC_paracheck = sum para: Nat . (para<3) -> r_requestparacheck(para) . paracheck(para) . sum b: Bool . s_responseparacheck(para,b) . SC;
 
-
 %________________________Thruster Controller________________________
-TC = r_requestcheck(1) . TC_check(0) + r_requestfix(1) . TC_fix + TC_valvesremap + TC_valvescheck + sum module: Nat. (module<=4) -> (TC_speedup(module) + TC_adjustdirection(module));
-
+TC = r_requestcheck(1) . TC_check(1) + r_requestfix(1) . TC_fix + TC_valvesremap + TC_valvescheck + sum module: Nat. (module<=4) -> (TC_speedup(module) + TC_adjustdirection(module));
 TC_valvesremap = r_requestvalvesremap . valvesremap . TC;
-
 TC_speedup(module: Nat) = r_speedup(module) . speedup(module) . s_responsespeedup . TC;
-
 TC_adjustdirection(module: Nat) = r_adjustdirection(module) . adjustdirection(module) . s_responseadjustdirection . TC;
-
 TC_valvescheck = r_requestvalvescheck . valvescheck . sum b: Bool . s_responsevalvescheck(b) . TC;
-
-TC_check(module: Nat) = (module<=4) -> ((module<=3) -> check(1,module) . TC_check(module+1) <> check(1,module) . sum b: Bool .  s_responsecheck(1,b) . TC);
-
+TC_check(con: Nat) = (check(con,0)|check(con,1)|check(con,2)|check(con,3)|check(con,4)) . sum b: Bool .  s_responsecheck(con,b) . TC;
 TC_fix =  sum module: Nat . (module<=4) -> fix(module) . sum b: Bool . s_responsecheck(1,b) . TC;
 
-
 %________________________Detachment Controller________________________
-DC = r_requestcheck(2) . DC_readycheck(0) + r_requestfix(2) . DC_fix + sum n: Nat . (n<5) -> (DC_detachment(n));
-
-DC_readycheck(module: Nat) = (module<5) -> ((module<4) -> check(2,module) . DC_readycheck(module+1) <> check(2,module) . sum b: Bool .  s_responsecheck(2,b) . DC);
-
+DC = r_requestcheck(2) . DC_readycheck(2) + r_requestfix(2) . DC_fix + sum n: Nat . (n<5) -> (DC_detachment(n));
+DC_readycheck(con: Nat) = (check(con,0)|check(con,1)|check(con,2)|check(con,3)|check(con,4)) . sum b: Bool .  s_responsecheck(con,b) . DC;
 DC_fix = sum module: Nat . (module<5) -> fix(module) . sum b: Bool . s_responsecheck(2, b) . DC;
-
 DC_detachment(module: Nat) = r_detachment(module) . detachmodule(module) . s_responsedetachment . (module != 2) -> DC <> s_ending . DC;
 
-
 %________________________Engine Controller________________________
-EC = r_requestcheck(3) . EC_requestcheck(0) + r_requestfix(3) . EC_requestfix + sum module: Nat.(module <= 2) -> (EC_checkfuel(module) + EC_power(module));
-
+EC = r_requestcheck(3) . EC_requestcheck(3) + r_requestfix(3) . EC_requestfix + sum module: Nat.(module <= 2) -> (EC_checkfuel(module) + EC_power(module));
 EC_checkfuel(module: Nat) = r_requestcheckfuel(module) . checkfuel(module) . sum b: Bool . s_responsecheckfuel(module,b) . EC;
-
 EC_power(module: Nat) = sum b: Bool . r_power(module,b) . power(module,b) . s_responsepower . EC;
-
-EC_requestcheck(module: Nat) = (module<3) -> ((module<2) -> check(3,module) . EC_requestcheck(module+1) <> check(3,module) . sum b: Bool .  s_responsecheck(3,b) . EC);
-
+EC_requestcheck(con: Nat) = (check(con,0)|check(con,1)|check(con,2)) . sum b: Bool .  s_responsecheck(con,b) . EC;
 EC_requestfix = sum module: Nat . (module<3) -> fix(module) . sum b: Bool . s_responsecheck(3, b) . EC;
-
 
 %________________________Console Controller________________________
 CC_0 = CC_check(-1);
@@ -109,7 +93,6 @@ CC_6 = detach6;
 
 %------------------CC_0------------------
 CC_check(con: Int) = (con<3) -> s_requestcheck(Int2Nat(con+1)) . sum b: Bool . b -> ((con==2) -> r_responsecheck(Int2Nat(con+1),b) . liftoffready . CC_1 <> r_responsecheck(Int2Nat(con+1),b) . CC_check(con+1)) <> r_responsecheck(Int2Nat(con+1),b) . CC_fix(Int2Nat(con+1));
-
 CC_fix(con: Nat) = s_requestfix(con) . sum b: Bool . b -> ((con==3) -> r_responsecheck(con,b) . liftoffready . CC_1 <> r_responsecheck(con,b) . CC_check(con)) <> r_responsecheck(con,b) . CC_fix(con);
 
 %------------------CC_1------------------
@@ -117,22 +100,15 @@ BMLM_on(module: Nat) = (module==0) -> s_power(module,true) . r_responsepower . B
 
 %------------------CC_2------------------
 adjust2 = sum para: Nat . (para<2) -> s_requestparacheck(para) . sum b: Bool . b -> r_responseparacheck(para,b) . CC_2 <> (r_responseparacheck(para,b) . ((para==0) -> speedup2 + (para==1) -> direction2));
-
 speedup2 = sum module: Nat . (module<2) -> s_speedup(module) . r_responsespeedup . adjust2;
-
 direction2 = sum module: Nat . (module<2) -> s_adjustdirection(module) . r_responseadjustdirection . adjust2;
-
 detach2 = s_requestcheckfuel(0) . sum b: Bool . b -> r_responsecheckfuel(0,b) . CC_2 <> r_responsecheckfuel(0,b) . s_power(0,false) . r_responsepower . s_detachment(0) . r_responsedetachment . CC_3;
 
 %------------------CC_3------------------
 adjust3 = sum para: Nat . (para<2) -> s_requestparacheck(para) . sum b: Bool . b -> r_responseparacheck(para,b) . CC_3 <> (r_responseparacheck(para,b) . ((para==0) -> speedup3 + (para==1) -> direction3));
-
 speedup3 = s_speedup(1) . r_responsespeedup . adjust3;
-
 direction3 = s_adjustdirection(1) . r_responseadjustdirection . adjust3;
-
 detach3 = s_requestparacheck(2) . sum b: Bool . b -> r_responseparacheck(2,b) . detach3a <> r_responseparacheck(2,b) . CC_3;
-
 detach3a = s_requestcheckfuel(1) . sum b: Bool . b -> r_responsecheckfuel(1,b) . CC_3 <> r_responsecheckfuel(1,b) . s_power(1,false) . r_responsepower . s_detachment(1) . r_responsedetachment . CC_4;
 
 %------------------CC_4------------------
@@ -140,82 +116,78 @@ detach4 = s_detachment(4) . r_responsedetachment . CC_5;
 
 %------------------CC_5------------------
 OM_on = s_power(2,true) . r_responsepower . CC_5;
-
 adjust5 = sum para: Nat . (para<2) -> s_requestparacheck(para) . sum b: Bool . b -> r_responseparacheck(para,b) . CC_5 <> (r_responseparacheck(para,b) . ((para==0) -> speedup5 + (para==1) -> direction5));
-
 speedup5 = s_speedup(2) . r_responsespeedup . adjust5;
-
 direction5 = s_adjustdirection(2) . r_responseadjustdirection . adjust5;
 
 %------------------CC_6------------------
 detach6 = s_requestcheckfuel(2) . sum b: Bool . b -> r_responsecheckfuel(2,b) . CC_5 <> r_responsecheckfuel(2,b) . detach6a;
-
 detach6a = s_power(2,false) . r_responsepower . detach6b;
-
 detach6b = s_requestvalvesremap . s_requestvalvescheck . sum b: Bool . b -> r_responsevalvescheck(b) . detach6c <> r_responsevalvescheck(b) . detach6b;
-
 detach6c = s_detachment(2) . r_responsedetachment . r_ending . delta;
 
 init
-allow({
-    c_requestcheck,
-    c_responsecheck,
-    c_requestfix,
-    liftoffready,
-    liftoff,
-    check,
-    fix,
+	allow({
+    	c_requestcheck,
+    	c_responsecheck,
+    	c_requestfix,
+    	liftoffready,
+    	liftoff,
+    	check,
+    	check|check|check,
+    	check|check|check|check|check,
+    	fix,
     
-    c_requestparacheck,
-    c_responseparacheck,
-    paracheck,
+    	c_requestparacheck,
+    	c_responseparacheck,
+    	paracheck,
     
-    c_power,
-	c_responsepower,
-    c_requestcheckfuel,
-    c_responsecheckfuel,
-    power,
-    checkfuel,
+    	c_power,
+    	c_responsepower,
+    	c_requestcheckfuel,
+    	c_responsecheckfuel,
+    	power,
+    	checkfuel,
     
-    c_detachment,
-	c_responsedetachment,
-	detachmodule,
+    	c_detachment,
+    	c_responsedetachment,
+    	detachmodule,
     
-    c_speedup,
-	c_responsespeedup,
-    c_adjustdirection,
-	c_responseadjustdirection,
-    c_requestvalvesremap,
-    c_requestvalvescheck,
-    c_responsevalvescheck,
-    speedup,
-    adjustdirection,
-    valvesremap,
-    valvescheck,
+    	c_speedup,
+    	c_responsespeedup,
+    	c_adjustdirection,
+    	c_responseadjustdirection,
+    	c_requestvalvesremap,
+    	c_requestvalvescheck,
+    	c_responsevalvescheck,
+    	speedup,
+    	adjustdirection,
+    	valvesremap,
+    	valvescheck,
     
-    c_ending
-},
+    	c_ending
+	},
 
-comm({	
-    s_requestcheck|r_requestcheck -> c_requestcheck,
-    s_responsecheck|r_responsecheck -> c_responsecheck,
-    s_requestfix|r_requestfix -> c_requestfix,    
-    s_requestparacheck|r_requestparacheck -> c_requestparacheck,
-    s_responseparacheck|r_responseparacheck -> c_responseparacheck,
-    s_power|r_power -> c_power,
-	s_responsepower|r_responsepower -> c_responsepower,
-    s_requestcheckfuel|r_requestcheckfuel -> c_requestcheckfuel,
-    s_responsecheckfuel|r_responsecheckfuel -> c_responsecheckfuel,
-    s_detachment|r_detachment -> c_detachment,
-	s_responsedetachment|r_responsedetachment -> c_responsedetachment,
-    s_speedup|r_speedup -> c_speedup,
-	s_responsespeedup|r_responsespeedup -> c_responsespeedup,
-    s_adjustdirection|r_adjustdirection -> c_adjustdirection,
-	s_responseadjustdirection|r_responseadjustdirection -> c_responseadjustdirection,
-    s_requestvalvesremap|r_requestvalvesremap -> c_requestvalvesremap,
-    s_requestvalvescheck|r_requestvalvescheck -> c_requestvalvescheck,
-    s_responsevalvescheck|r_responsevalvescheck -> c_responsevalvescheck,
-	s_ending|r_ending -> c_ending
-},
-
-CC_0||SC||EC||TC||DC));
+	comm({	
+    	s_requestcheck|r_requestcheck -> c_requestcheck,
+    	s_responsecheck|r_responsecheck -> c_responsecheck,
+    	s_requestfix|r_requestfix -> c_requestfix,    
+    	s_requestparacheck|r_requestparacheck -> c_requestparacheck,
+    	s_responseparacheck|r_responseparacheck -> c_responseparacheck,
+    	s_power|r_power -> c_power,
+    	s_responsepower|r_responsepower -> c_responsepower,
+    	s_requestcheckfuel|r_requestcheckfuel -> c_requestcheckfuel,
+    	s_responsecheckfuel|r_responsecheckfuel -> c_responsecheckfuel,
+    	s_detachment|r_detachment -> c_detachment,
+    	s_responsedetachment|r_responsedetachment -> c_responsedetachment,
+    	s_speedup|r_speedup -> c_speedup,
+    	s_responsespeedup|r_responsespeedup -> c_responsespeedup,
+    	s_adjustdirection|r_adjustdirection -> c_adjustdirection,
+    	s_responseadjustdirection|r_responseadjustdirection -> c_responseadjustdirection,
+    	s_requestvalvesremap|r_requestvalvesremap -> c_requestvalvesremap,
+    	s_requestvalvescheck|r_requestvalvescheck -> c_requestvalvescheck,
+    	s_responsevalvescheck|r_responsevalvescheck -> c_responsevalvescheck,
+    	s_ending|r_ending -> c_ending
+	},
+	
+	CC_0||SC||EC||TC||DC));
