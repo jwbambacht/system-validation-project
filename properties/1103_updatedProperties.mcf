@@ -14,10 +14,10 @@ forall n:Nat . val (n <= 2) => (
 
 &&
 
-% Liftoff is possible to take place only after liftoffready.
+% Liftoff is the only possible action which takes place after liftoffready, and it cannot occur before liftoffready.
 [!liftoffready* . liftoff] false
 &&
-<true* . liftoffready*> <true* . liftoff> true  
+<true* . liftoffready> <liftoff> true  
 
 
 &&
