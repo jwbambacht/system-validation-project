@@ -1,5 +1,0 @@
-([true* . c_responsevalvescheck(true)] <true* . c_detachment(2)> true)
-
-&&
-
-([true* . c_responsevalvescheck(false)] <true* . !c_detachment(2)> true)
